@@ -1,0 +1,7 @@
+export FORT_CONVERT87=BIG_ENDIAN
+export TKIO=/PANFS/user/home/tkio/tkio-3.100.3
+export HDF5_LIB=/PANFS/local/HDF5/lib
+export HDF5_INC=/PANFS/local/HDF5/include 
+#export OMP_NUM_THREADS=1
+source /panfs-hydra/local/intel/Compiler/default/bin/compilervars.sh  intel64
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${HDF5_LIB}:./onnxruntime/lib/:./npy_array:../miniforge3/lib:./flann/lib/
