@@ -36,8 +36,9 @@ CC_SWITCH  = IFORT
 #HDF5_INC=/PANFS/local/HDF5/include/
 #HDF5_LIB=/PANFS/local/HDF5/lib
 #TKIO=/PANFS/user/home/tkio/tkio-3.97.13
+NETCDF_INC=/PANFS/local/NETCDF/include/
 #---Required include files
-INC=    -I$(HDF5_INC)\
+INC=    -I$(HDF5_INC) -I$(NETCDF_INC)\
 	-Iflann/include/\
         -I$(TKIO)/inc/ccode\
         -I/usr/local/include/\
@@ -88,11 +89,11 @@ OBJ =	    main.o f90DataTypes.o  random.o writegif.o nbin.o\
     rteModule.o getScattProp.o armadillo_funcs.o cmbAlg.o\
     writeCMBOut_TK_FS.o  writeCMBOut_TK.o writeCMBTOut_TK.o writeCMBOut_TK_T.o\
     clutterCorrection_bzd.o oe_output_kugmi.o check_nan.o oe_output_kutmi.o onnx_bridge.o\
-    fortran_getter.o
+    fortran_getter.o onnx_f90_interface.o  retrieval_model_onnx.o
 
 #read_TRMM.o read_GPM.o
 OBJEXE	=    $(OBJ)  mainf.o mainf_t.o 
-
+ 
 #---Link and create Executable
 combAlg2.exe:	$(OBJEXE) 
 		$(F90)  -nofor_main $(OPENMPF) -o \
@@ -209,6 +210,12 @@ readNh.o:	src_c/readNh.c
 
 onnx_bridge.o:	src_c/onnx_bridge.c
 		$(CC) -I npy_array -I../miniforge3/include -c -O2 src_c/onnx_bridge.c
+
+onnx_f90_interface.o: onnx-runtime-src/onnx_f90_interface.f90
+		      $(F90) -c -fPIC onnx-runtime-src/onnx_f90_interface.f90
+
+retrieval_model_onnx.o:	onnx-runtime-src/retrieval_model_onnx.c
+		      $(CC) -c -fPIC -I./onnxruntime/include onnx-runtime-src/retrieval_model_onnx.c
 
 clutterCorrection_bzd.o:	src_c/clutterCorrection_bzd.c
 		$(CC) -c -O2  $(INC) src_c/clutterCorrection_bzd.c
