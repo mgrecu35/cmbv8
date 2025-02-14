@@ -14,8 +14,9 @@ subroutine call_onnx_f90(input_data,actual_seq_len,n_input,n_seq,n_batch,&
          n_seq, n_input, n_output)
 end subroutine call_onnx_f90
 
-subroutine onnx_retrieval_ku_f90(z_ku_meas, p_type, bin_nodes, n_scans, onnx_precip_rate, onnx_dm, &
-    near_surf_onnx_precip_rate,n_batch, n_seq, n_input,n_output)
+subroutine onnx_retrieval_ku_f90(z_ku_meas, p_type, bin_nodes, n_scans, onnx_precip_rate, &
+     onnx_dm, &
+     near_surf_onnx_precip_rate,xlon,xlat,n_batch, n_seq, n_input,n_output)
     integer :: n_scans
     real :: z_ku_meas(88,49,n_scans)
     integer :: p_type(49,n_scans) , bin_nodes(5,49,n_scans)
@@ -29,6 +30,8 @@ subroutine onnx_retrieval_ku_f90(z_ku_meas, p_type, bin_nodes, n_scans, onnx_pre
     real :: z_ku_scaled, bin_scaled
     real, intent(out) :: near_surf_onnx_precip_rate(49,n_scans)
     integer :: n_points=1
+    real :: xlon(49,n_scans), xlat(49,n_scans), wrfract
+    integer :: im
     ic=1
     !print*, n_points,n_batch,n_seq,n_input,n_output
     !print*, n_scans
@@ -51,10 +54,16 @@ subroutine onnx_retrieval_ku_f90(z_ku_meas, p_type, bin_nodes, n_scans, onnx_pre
                     end if
                 end do
                 actual_seq_len(ic)=bin_nodes(5,j,i)-bin_nodes(1,j,i)+1
+                call getwfraction(xlat(j,i),&
+                     xlon(j,i),wfractPix)
+                im=0
+                if(p_type(j,i)/100==2) im=1
+                if(wfractPix<50) im=im+2
                 !print*, i, j, ic, actual_seq_len(ic)
                 if (actual_seq_len(ic)>1) then
+                   
                     call call_onnx(input_data, actual_seq_len, output_data, n_points, & 
-                    n_seq, n_input, n_output)
+                    n_seq, n_input, n_output,im)
                 endif
                 do k=bin_nodes(1,j,i),bin_nodes(5,j,i)
                     onnx_precip_rate(k,j,i)=0.1*(10**output_data(1,k+1-bin_nodes(1,j,i),ic)-1)

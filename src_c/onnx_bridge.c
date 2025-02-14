@@ -22,6 +22,7 @@ void onnx_bridge(int ichunk, int orbnumber)
   float *freez_h;
   char *fname;
   float *onnx_precip_rate, *onnx_dm, *near_surf_onnx_precip_rate;
+  float *xlon, *xlat;
   printf("ichunk=%i iorb=%i\n",ichunk,orbnumber);
   zku=(float *) malloc(sizeof(float)*300*49*88);
   zka=(float *) malloc(sizeof(float)*300*49*88);
@@ -32,13 +33,14 @@ void onnx_bridge(int ichunk, int orbnumber)
   onnx_dm=(float *)malloc(sizeof(float)*300*49*88);
   onnx_precip_rate=(float *)malloc(sizeof(float)*300*49*88);
   near_surf_onnx_precip_rate=(float *)malloc(sizeof(float)*300*49);
-  
-  get_dprdata_c_loc_(zku,zka,rain_type,node,bin_sfc,freez_h);
+  xlon=(float *)malloc(sizeof(float)*300*49);
+  xlat=(float *)malloc(sizeof(float)*300*49);
+  get_dprdata_c_loc_(zku,zka,rain_type,node,bin_sfc,freez_h, xlon, xlat);
   fname=(char *)malloc(sizeof(char)*100);
   int n_scans=300,n_batch=1,n_seq=60,n_input=2,n_output=2;
   onnx_retrieval_ku_f90_(zku, rain_type, node, &n_scans,
 			 onnx_precip_rate, onnx_dm, 
-			 near_surf_onnx_precip_rate, &n_batch,
+			 near_surf_onnx_precip_rate, xlon, xlat, &n_batch,
 			 &n_seq,&n_input,&n_output);
   
   sprintf(fname, "npy_tmp_dir/cmb_npy.%2.2i.%6.6i.npz", ichunk, orbnumber);
@@ -63,5 +65,7 @@ void onnx_bridge(int ichunk, int orbnumber)
   free(freez_h);
   free(near_surf_onnx_precip_rate);
   free(onnx_precip_rate);
-  free(onnx_dm);  
+  free(onnx_dm);
+  free(xlon);
+  free(xlat);
 }
